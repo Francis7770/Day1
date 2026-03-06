@@ -1,0 +1,63 @@
+class Solution {
+    public int minArraySum(int[] nums, int k, int op1, int op2) {
+        /**
+        
+        the minSum from beginning to current num, with op1, op2
+        dp[i][p][q]= min{    dp[i-1][p-1][q]+op1(num[i])
+                             dp[i-1][p][q-1]+opt(num[i])
+                             dp[i-1][p][q]+num[i]
+                             dp[i-1][p-1][q-1] + op1+op2(num[i])
+        */
+
+        int n = nums.length;
+        int[][][] dp = new int[n + 1][op1 + 1][op2 + 1];
+
+        // Initialize DP table
+        for (int i = 0; i <= n; i++) {
+            for (int p = 0; p <= op1; p++) {
+                for (int q = 0; q <= op2; q++) {
+                    dp[i][p][q] = Integer.MAX_VALUE;
+                }
+            }
+        }
+
+        // Base case: When no elements are included (i = 0), sum is 0
+        for (int p = 0; p <= op1; p++) {
+            for (int q = 0; q <= op2; q++) {
+                dp[0][p][q] = 0;
+            }
+        }
+
+        // Fill DP table
+        for (int i = 1; i <= n; i++) {
+            for (int p = 0; p <= op1; p++) {
+                for (int q = 0; q <= op2; q++) {
+                    // Case 1: Do not apply any operations
+                    dp[i][p][q] = Math.min(dp[i][p][q], dp[i - 1][p][q] + nums[i - 1]);
+
+                    // Case 2: Apply op1 if possible
+                    if (p > 0) {
+                        dp[i][p][q] = Math.min(dp[i][p][q], dp[i - 1][p - 1][q] + (nums[i - 1] + 1) / 2);
+                    }
+
+                    // Case 3: Apply op2 if possible
+                    if (q > 0 && nums[i - 1] >= k) {
+                        dp[i][p][q] = Math.min(dp[i][p][q], dp[i - 1][p][q - 1] + nums[i - 1] - k);
+                    }
+
+                    // Case 4: Apply both op1 and op2 if possible
+                    if (p > 0 && q > 0 && nums[i - 1] >= k) {
+                        int better = (nums[i - 1] - k + 1) / 2;
+                        if ((nums[i - 1] + 1) / 2 >= k) {
+                            better = Math.min(better, (nums[i - 1] + 1) / 2 - k);
+                        }
+                        dp[i][p][q] = Math.min(dp[i][p][q], dp[i - 1][p - 1][q - 1] + better);
+                    }
+                }
+            }
+        }
+
+        // Result: Minimum sum at the last index with all operations used
+        return dp[n][op1][op2];
+    }
+}
